@@ -1,6 +1,8 @@
 //Daniel Woolnough, 02/03/18
 //Implementation of arithmetic encoding using a stop digit to denote end of message
-//some assumptions: Messages no longer than 1000 characters;
+//some assumptions:
+//      Messages no longer than 1000 characters;
+//      results need no more than 50 decimal places;
 //      no punctuation, spaces, capitals, or non-alphabetic symbols inputted
 // result printed to 50 decimal places (more may be needed for larger messages)
 
@@ -11,14 +13,18 @@
 #include <ctype.h>
 
 #define MAX_MESSAGE_SIZE 1000
+#define MAX_NUM_DECIMALS 50
 
 float * defineProb(void);
 float encode(char *message, float *x, float upper, float lower);
+char *removeTrail0(float number);
 
 int main (void) {
 
     float *x = defineProb(); //array of english language letter frequencies
 
+    printf("Enter message to be compressed.\n"
+            "Do not enter spaces, punctuation, capitals, or non-alphabetic characters\n--> ");
     char *message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
     fgets(message, MAX_MESSAGE_SIZE, stdin);
 
@@ -28,13 +34,18 @@ int main (void) {
     float lower = 0;
     float result = encode(message, x, upper, lower);
 
-    printf("RESULT: %.50f\n", result);
+    char *strResult = removeTrail0(result);
+    printf("RESULT: %s\n", strResult);
 
     free(message);
     free(x);
-    return result;
+    free(strResult);
+    return EXIT_SUCCESS;
 }
 
+//create and return array of english letter frequencies
+//source:
+//https://en.wikipedia.org/wiki/Letter_frequency#Relative_frequencies_of_letters_in_the_English_language
 float *defineProb(void) {
     float *x = malloc(sizeof(int) * 27);//extra 'letter' to denote end of message (stop symbol)
     x[0] = 0.081670000;
@@ -67,15 +78,20 @@ float *defineProb(void) {
     return x;
 }
 
+//perform the encoding
+//implemented recursively
+//returns the final result as a float
 float encode(char *message, float *x, float upper, float lower){
-    printf("\n\n\nUsing upper: %.20f and lower:%.20f\n\n\n", upper, lower);
 
     //cumulative frequencies for this partition
-    float *cmFreq = malloc(sizeof(float) * 28);
+    float *cmFreq = malloc(sizeof(float) * 28);//27 partitions = 28 values
     for(int i = 0; i < 28; i++) {
         if(i == 0) cmFreq[i] = lower;
+        else if (i == 27) cmFreq[i] = upper;
         else cmFreq[i] = cmFreq[i - 1] + x[i - 1] * (upper - lower);
-        printf("for %d and %c: %.20f\n", i,  message[0], cmFreq[i]);
+
+        //include this line if you wish to see each subinterval
+        // printf("for %d and %c: %.20f\n", i,  message[0], cmFreq[i]);
     }
 
     //end of message, add a stop symbol and return.
@@ -89,5 +105,21 @@ float encode(char *message, float *x, float upper, float lower){
     int index = message[0] - 'a';
     float result =  encode(&message[1], x, cmFreq[index + 1], cmFreq[index]);
     free(cmFreq);
+    return result;
+}
+
+char *removeTrail0(float number) {
+    char *result = malloc(sizeof(char) * MAX_NUM_DECIMALS);
+    sprintf(result, "%.50g", number);
+
+    char *p = strchr(result, '.'); //locate decimal point
+    while(*p != '\0') {
+        p++;
+    }
+    *p-- = '\0';
+    while(*p == '0') {
+        *p-- = '\0';
+    }
+    if(*p == '.') *p = '\0';
     return result;
 }
