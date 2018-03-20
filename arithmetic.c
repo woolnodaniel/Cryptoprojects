@@ -20,13 +20,17 @@
 #define MAX_NUM_DECIMALS 100
 
 float * defineProb(void);
+float * defineCmFreq(float *x, float upper, float lower);
 float encode(char *message, float *x, float upper, float lower);
+void decode(float encryption, float *x, float upper, float lower);
 char *removeTrail0(float number);
 
 int main (int argc, char *argv[]) {
 
-    if(argc == 1 || argc >= 4) {
-        fprintf(stderr, COLOR_CYAN"\nUsage:"COLOR_RESET" ./arithmeticEncoder \"message\"\n\n");
+    if(argc != 3) {
+        fprintf(stderr, COLOR_CYAN"\nUsage:"COLOR_RESET" ./arithmeticEncoder \"message\" flags\n"
+                        COLOR_CYAN"Flags:\n"COLOR_RED"-e"COLOR_RESET" to use encoding function\n"
+                        COLOR_RED"-d"COLOR_RESET" to use decoding function\n\n");
         exit(0);
     }
 
@@ -38,13 +42,21 @@ int main (int argc, char *argv[]) {
     //start with entire probability distribution (0 to 1)
     float upper = 1;
     float lower = 0;
-    float result = encode(message, x, upper, lower);
-
-    char *strResult = removeTrail0(result);
-    printf("RESULT: %s\n", strResult);
+    float result;
+    if(strcmp(argv[2], "-e") == 0) {
+        result = encode(message, x, upper, lower);
+        char *strResult = removeTrail0(result);
+        printf("RESULT: %s\n", strResult);
+        free(strResult);
+    } else {
+        float encryption = strtof(message, NULL);
+        printf("RESULT: ");
+        decode(encryption, x, upper, lower);
+        LINE;
+        LINE;
+    }
 
     free(x);
-    free(strResult);
     return EXIT_SUCCESS;
 }
 
@@ -83,12 +95,7 @@ float *defineProb(void) {
     return x;
 }
 
-//perform the encoding
-//implemented recursively
-//returns the final result as a float
-float encode(char *message, float *x, float upper, float lower){
-
-    //cumulative frequencies for this partition
+float * defineCmFreq(float *x, float upper, float lower) {
     float *cmFreq = malloc(sizeof(float) * 28);//27 partitions = 28 values
     for(int i = 0; i < 28; i++) {
         if(i == 0) cmFreq[i] = lower;
@@ -98,6 +105,18 @@ float encode(char *message, float *x, float upper, float lower){
         //include this line if you wish to see each subinterval
         // printf("for %d and %c: %.20f\n", i,  message[0], cmFreq[i]);
     }
+    return cmFreq;
+}
+
+//perform the encoding
+//implemented recursively
+//returns the final result as a float
+float encode(char *message, float *x, float upper, float lower){
+
+    printf("Between %.50f and %.50f\n\n", lower, upper);
+
+    //cumulative frequencies for this partition
+    float *cmFreq = defineCmFreq(x, upper, lower);
 
     float result;
 
@@ -111,7 +130,7 @@ float encode(char *message, float *x, float upper, float lower){
     //else, recursively call in next partition
     int i = 0;
     while(!isalpha(message[i]) && message[i] != '\0') i++;
-    printf("I is %d\n", i);
+    // printf("I is %d\n", i);
     if(message[i] != '\0'){
         int index = tolower(message[i]) - 'a';
         result =  encode(&message[i+1], x, cmFreq[index + 1], cmFreq[index]);
@@ -120,6 +139,19 @@ float encode(char *message, float *x, float upper, float lower){
     }
     free(cmFreq);
     return result;
+}
+
+void decode(float encryption, float *x, float upper, float lower) {
+
+    printf("Between %.20f and %.20f\n\n", lower, upper);
+
+    float *cmFreq = defineCmFreq(x, upper, lower);
+    int i = 0;
+    for(; encryption > cmFreq[i + 1]; i++);
+    if(i == 26) return;
+    printf("%c", i + 'a');
+    decode(encryption, x, cmFreq[i + 1], cmFreq[i]);
+
 }
 
 char *removeTrail0(float number) {
