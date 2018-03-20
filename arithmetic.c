@@ -1,10 +1,8 @@
 //Daniel Woolnough, 02/03/18
 //Implementation of arithmetic encoding using a stop digit to denote end of message
 //some assumptions:
-//      Messages no longer than 1000 characters;
-//      results need no more than 50 decimal places;
-//      no punctuation, spaces, capitals, or non-alphabetic symbols inputted
-// result printed to 50 decimal places (more may be needed for larger messages)
+//      results need no more than 100 decimal places;
+// result printed to 100 decimal places (more may be needed for larger messages)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,21 +10,29 @@
 #include <assert.h>
 #include <ctype.h>
 
-#define MAX_MESSAGE_SIZE 1000
-#define MAX_NUM_DECIMALS 50
+#define COLOR_RED     "\x1b[91m"
+#define COLOR_GREEN   "\x1b[92m"
+#define COLOR_CYAN    "\x1b[96m"
+#define COLOR_RESET   "\x1b[0m"
+#define COLOR_BLUE    "\x1b[94m"
+#define LINE    putchar('\n');
+
+#define MAX_NUM_DECIMALS 100
 
 float * defineProb(void);
 float encode(char *message, float *x, float upper, float lower);
 char *removeTrail0(float number);
 
-int main (void) {
+int main (int argc, char *argv[]) {
+
+    if(argc == 1 || argc >= 4) {
+        fprintf(stderr, COLOR_CYAN"\nUsage:"COLOR_RESET" ./arithmeticEncoder \"message\"\n\n");
+        exit(0);
+    }
 
     float *x = defineProb(); //array of english language letter frequencies
 
-    printf("Enter message to be compressed.\n"
-            "Do not enter spaces, punctuation, capitals, or non-alphabetic characters\n--> ");
-    char *message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
-    fgets(message, MAX_MESSAGE_SIZE, stdin);
+    char *message = argv[1];
 
     //partition defined by upper and lower bounds
     //start with entire probability distribution (0 to 1)
@@ -37,7 +43,6 @@ int main (void) {
     char *strResult = removeTrail0(result);
     printf("RESULT: %s\n", strResult);
 
-    free(message);
     free(x);
     free(strResult);
     return EXIT_SUCCESS;
@@ -94,23 +99,32 @@ float encode(char *message, float *x, float upper, float lower){
         // printf("for %d and %c: %.20f\n", i,  message[0], cmFreq[i]);
     }
 
+    float result;
+
     //end of message, add a stop symbol and return.
-    if(message == NULL || message[0] == '\0' || !isalpha(message[0])) {
-        float result = (cmFreq[26] + cmFreq[27])/2;
+    if(message == NULL || message[0] == '\0') {
+        result = (cmFreq[26] + cmFreq[27])/2;
         free(cmFreq);
         return result;
     }
 
     //else, recursively call in next partition
-    int index = message[0] - 'a';
-    float result =  encode(&message[1], x, cmFreq[index + 1], cmFreq[index]);
+    int i = 0;
+    while(!isalpha(message[i]) && message[i] != '\0') i++;
+    printf("I is %d\n", i);
+    if(message[i] != '\0'){
+        int index = tolower(message[i]) - 'a';
+        result =  encode(&message[i+1], x, cmFreq[index + 1], cmFreq[index]);
+    } else {
+        result = (cmFreq[26] + cmFreq[27])/2;
+    }
     free(cmFreq);
     return result;
 }
 
 char *removeTrail0(float number) {
     char *result = malloc(sizeof(char) * MAX_NUM_DECIMALS);
-    sprintf(result, "%.50g", number);
+    sprintf(result, "%.100g", number);
 
     char *p = strchr(result, '.'); //locate decimal point
     while(*p != '\0') {

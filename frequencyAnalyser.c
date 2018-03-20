@@ -52,6 +52,7 @@ int main (int argc, char *argv[]) {
     if(match) {
         findMatch(message, frequencies, lettersUsed);
     }
+    else LINE;
 
     free(message);
 
@@ -85,7 +86,6 @@ int *printFreq(int frequencies[]) {
         printf(COLOR_GREEN"%3d"COLOR_RESET, frequencies[i]);
     }
     LINE;
-    LINE;
     return lettersUsed;
 }
 
@@ -93,7 +93,7 @@ void findMatch(char *message, int frequencies[], int *lettersUsed) {
 
     //a very crude method of using the frequencies to decrypt
 
-    printf(COLOR_CYAN"Possible Match:\n"COLOR_RESET);
+
 
     char englishLetters[26] = "etaoinshrdlcumwfgypbvkjxqz";
     char *decryption = malloc(sizeof(char) * 26);
@@ -108,12 +108,22 @@ void findMatch(char *message, int frequencies[], int *lettersUsed) {
         frequencies[index] = 0;
     }
 
+    for(int i = 0; i < 26; i++) {
+        printf("%3c", decryption[i]);
+    }
+    LINE;
+    LINE;
+
+    printf(COLOR_CYAN"Possible Match:\n"COLOR_RESET);
+    LINE;
+
     highest = 0;
     while(message[highest] != '\0') {
         if(!isalpha(message[highest])) putchar(message[highest]);
         else printf("%c", decryption[(tolower(message[highest]) - 'a')]);
         highest++;
     }
+    LINE;
     LINE;
 }
 
