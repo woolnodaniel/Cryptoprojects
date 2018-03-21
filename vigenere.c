@@ -2,12 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define NUM_WORDS 267753
 #define MAX_WORD_SIZE 20
 #define MAX_MESSAGE_SIZE 1000
 
+#define COLOR_RED     "\x1b[91m"
+#define COLOR_GREEN   "\x1b[92m"
+#define COLOR_CYAN    "\x1b[96m"
+#define COLOR_RESET   "\x1b[0m"
+#define COLOR_BLUE    "\x1b[94m"
+
 int mod(int i, int j);
 void decrypt(char *copy, char *key, int n);
-void checkAnswer(char *copy, char *key);
+void checkAnswer(char *copy, char *key);//, char **dictionary);
 
 int main (int argc, char *argv[]) {
 
@@ -21,33 +28,35 @@ int main (int argc, char *argv[]) {
         message = argv[1];
     }
 
-    FILE *dictionary1 = fopen("sowpods", "r");
 
-    printf("Possible Matches for %s:\n\n", message);
-
+    printf("Possible Matches for "COLOR_GREEN"%s:\n\n"COLOR_RESET, message);
+    int i = 2;
     char *key = malloc(sizeof(char) * MAX_WORD_SIZE);
-    while(fgets(key, MAX_WORD_SIZE, dictionary1) != NULL) {
+    while (i < MAX_WORD_SIZE) {
+        FILE *dictionary1 = fopen("sowpods", "r");
+        printf("Using keys of size "COLOR_CYAN"%d"COLOR_RESET":\n", i);
+        while(fgets(key, MAX_WORD_SIZE, dictionary1) != NULL) {
+            char *copy = strdup(message);
+            int n = strlen(key) - 2;
+            key[n+1] = '\0';
+            if(n != i) {
+                free(copy);
+                continue;
+            }
 
-        char *copy = strdup(message);
-        int n = strlen(key) - 2;
-        key[n+1] = '\0';
-        //I'm guessing the key size is five...
-        if(n != 8) {
+            printf("Trying key %s...\n",key);
+
+            decrypt(copy, key, n);
+
+            // printf("-->Decryption was %s\n", copy);
+            checkAnswer(copy, key);//, dictionary);
+
             free(copy);
-            continue;
         }
-
-        // printf("Trying key %s...\n",key);
-
-        decrypt(copy, key, n);
-
-        // printf("-->Decryption was %s\n", copy);
-        checkAnswer(copy, key);
-
-        free(copy);
+        i++;
+        fclose(dictionary1);
     }
-
-    fclose(dictionary1);
+    free(key);
     return EXIT_SUCCESS;
 }
 
@@ -71,21 +80,26 @@ int mod(int i, int j) {
     else return mod(i+j, j);
 }
 
-void checkAnswer(char *copy, char *key) {
+void checkAnswer(char *copy, char *key) {//}, char **dictionary) {
     FILE *dictionary2 = fopen("sowpods", "r");
     char *word = malloc(sizeof(char) * MAX_WORD_SIZE);
     int count = 0;
-    while(fgets(word, MAX_WORD_SIZE, dictionary2) != NULL) {
+    while(fgets(word, MAX_WORD_SIZE, dictionary2)) {
         word[strlen(word)-2] = '\0';
-        if(strlen(word) <= 3) continue;
+        if(strlen(word) < 7) continue; //I'm assuming the message contains at least one seven (or more) letter word
         // printf("------>Searching for %s...\n", word);
         if(strstr(copy, word) != NULL) {
             // printf("----------------->Found it!\n");
             count++;
-            // printf("-->Found %s\n", word);
+            printf("-->Found %s\n", word);
+            // getchar();
         }
         // else printf("No %s\n", word);
     }
-    if(count > 9) printf("%s with key %s and count %d\n", copy, key, count);
+    if(count > 0) {
+        printf("      "COLOR_RED"%s"COLOR_RESET" with key "COLOR_RED"%s"COLOR_RESET" and count "COLOR_RED"%d"COLOR_RESET"\a\n", copy, key, count);
+        getchar();
+    }
+    free(word);
     fclose(dictionary2);
 }
