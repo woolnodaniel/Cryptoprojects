@@ -86,7 +86,7 @@ void checkAnswer(char *copy, char *key) {//}, char **dictionary) {
     int count = 0;
     while(fgets(word, MAX_WORD_SIZE, dictionary2)) {
         word[strlen(word)-2] = '\0';
-        if(strlen(word) < 7) continue; //I'm assuming the message contains at least one seven (or more) letter word
+        if(strlen(word) < 7) continue;
         // printf("------>Searching for %s...\n", word);
         if(strstr(copy, word) != NULL) {
             // printf("----------------->Found it!\n");

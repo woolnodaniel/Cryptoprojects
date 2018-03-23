@@ -28,7 +28,7 @@ char *removeTrail0(float number);
 int main (int argc, char *argv[]) {
 
     if(argc != 3) {
-        fprintf(stderr, COLOR_CYAN"\nUsage:"COLOR_RESET" ./arithmeticEncoder \"message\" flags\n"
+        fprintf(stderr, COLOR_CYAN"\nUsage:"COLOR_RESET" ./arithmetic \"message\" flags\n"
                         COLOR_CYAN"Flags:\n"COLOR_RED"-e"COLOR_RESET" to use encoding function\n"
                         COLOR_RED"-d"COLOR_RESET" to use decoding function\n\n");
         exit(0);
