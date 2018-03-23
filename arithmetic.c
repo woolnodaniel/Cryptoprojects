@@ -113,8 +113,6 @@ float * defineCmFreq(float *x, float upper, float lower) {
 //returns the final result as a float
 float encode(char *message, float *x, float upper, float lower){
 
-    printf("Between %.50f and %.50f\n\n", lower, upper);
-
     //cumulative frequencies for this partition
     float *cmFreq = defineCmFreq(x, upper, lower);
 
