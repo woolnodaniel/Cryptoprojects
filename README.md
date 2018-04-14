@@ -1,10 +1,11 @@
 # Cryptoprojects
 
 A repository of C programs which all serve a different cryptographic purpose. Currently available:
-    * arithmetic.c: Performs arithmetic encoding of strings, and arithmetic decoding of floats.
 
-    * frequencyAnalyser.c: outputs a frequency analysis (English) of the given text. Can also provide a caesar cipher decryption based on this.
+* arithmetic.c: Performs arithmetic encoding of strings, and arithmetic decoding of floats.
 
-    * vigenere.c: a program to brute force a solution to a vigenere cipher
+* frequencyAnalyser.c: outputs a frequency analysis (English) of the given text. Can also provide a caesar cipher decryption based on this.
 
-    * rands.c: outputs a sequence of random numbers between 0 and 14 (can be adjusted)
+* vigenere.c: a program to brute force a solution to a vigenere cipher
+
+* rands.c: outputs a sequence of random numbers between 0 and 14 (can be adjusted)
