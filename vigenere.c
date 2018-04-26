@@ -19,6 +19,7 @@ void checkAnswer(char *copy, char *key);//, char **dictionary);
 int main (int argc, char *argv[]) {
 
     char *message;
+    char *key = NULL;
     if(argc == 1) {
         printf("Enter message to be decrypted: ");
         message = malloc(sizeof(char) * MAX_MESSAGE_SIZE);
@@ -26,12 +27,19 @@ int main (int argc, char *argv[]) {
         message[strlen(message) - 1] = '\0';
     } else {
         message = argv[1];
+        if (argc > 2) key = argv[2];
     }
 
+    if(key != NULL) {
+        int n = strlen(key) - 2;
+        decrypt(message, key, n);
+        printf("Decryption with key %s: "COLOR_RED"%s\n"COLOR_RESET, key, message);
+        return 0;
+    }
 
     printf("Possible Matches for "COLOR_GREEN"%s:\n\n"COLOR_RESET, message);
     int i = 2;
-    char *key = malloc(sizeof(char) * MAX_WORD_SIZE);
+    key = malloc(sizeof(char) * MAX_WORD_SIZE);
     while (i < MAX_WORD_SIZE) {
         FILE *dictionary1 = fopen("sowpods", "r");
         printf("Using keys of size "COLOR_CYAN"%d"COLOR_RESET":\n", i);
