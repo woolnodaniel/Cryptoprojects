@@ -10,6 +10,8 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
+// #include <gmp.h>
+// #include <mpfr.h>
 
 #define COLOR_RED     "\x1b[91m"
 #define COLOR_GREEN   "\x1b[92m"
@@ -23,8 +25,6 @@
 #define INVALID_ERROR fprintf(stderr, COLOR_RED"\n\"%s\""COLOR_RESET" is not a valid message (alphabetic characters only, no spaces), or"COLOR_RED" %s"COLOR_RESET" is not a valid integer \n\n", argv[2], argv[3]);
 #define INVALID_ERROR_2 fprintf(stderr, COLOR_RED"\"%s\""COLOR_RESET" is not a valid float (numeric characters or decimal point only), or"COLOR_RED" %s"COLOR_RESET" is not a valid integer \n\n", message, pieces);
 #define ARGS_ERROR fprintf(stderr, "\nNumber of inputs (%d) does not equal %d\n\n", argc-3, atoi(argv[2]));
-
-
 
 #define MAX_NUM_DECIMALS 100
 
@@ -57,7 +57,7 @@ int main (int argc, char *argv[]) {
         }
         char *message = argv[2];
         int pieces = atoi(argv[3]);
-        if(pieces <= 0) {
+        if(pieces <= 0 || pieces > strlen(message)) {
             INVALID_ERROR;
             exit(0);
         }
@@ -102,38 +102,40 @@ int main (int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 
-//create and return array of english letter frequencies
-//source:
-//https://en.wikipedia.org/wiki/Letter_frequency#Relative_frequencies_of_letters_in_the_English_language
+//create and return array of "probabilities"
+//usually this is done with real letter frequencies; for our purposes (to gain accuracy)
+//  I will instead use nicer numbers
 float *defineProb(void) {
     float *x = malloc(sizeof(int) * 27);//extra 'letter' to denote end of message (stop symbol)
-    x[0] = 0.081670000;
-    x[1] = 0.014920000;
-    x[2] = 0.027820000;
-    x[3] = 0.042530000;
-    x[4] = 0.127020000;
-    x[5] = 0.022280000;
-    x[6] = 0.020150000;
-    x[7] = 0.060940000;
-    x[8] = 0.069660000;
-    x[9] = 0.001530000;
-    x[10] = 0.007720000;
-    x[11] = 0.040250000;
-    x[12] = 0.024060000;
-    x[13] = 0.067490000;
-    x[14] = 0.075070000;
-    x[15] = 0.019290000;
-    x[16] = 0.000950000;
-    x[17] = 0.059870000;
-    x[18] = 0.063270000;
-    x[19] = 0.090560000;
-    x[20] = 0.027580000;
-    x[21] = 0.009780000;
-    x[22] = 0.023600000;
-    x[23] = 0.001500000;
-    x[24] = 0.019740000;
-    x[25] = 0.000740000;
-    x[26] = 0.000010000;
+    for(int i = 0; i < 26; i++) x[i] = 0.03;
+    x[26] = 0.22;
+    // x[0] = 0.081670000;
+    // x[1] = 0.014920000;
+    // x[2] = 0.027820000;
+    // x[3] = 0.042530000;
+    // x[4] = 0.127020000;
+    // x[5] = 0.022280000;
+    // x[6] = 0.020150000;
+    // x[7] = 0.060940000;
+    // x[8] = 0.069660000;
+    // x[9] = 0.001530000;
+    // x[10] = 0.007720000;
+    // x[11] = 0.040250000;
+    // x[12] = 0.024060000;
+    // x[13] = 0.067490000;
+    // x[14] = 0.075070000;
+    // x[15] = 0.019290000;
+    // x[16] = 0.000950000;
+    // x[17] = 0.059870000;
+    // x[18] = 0.063270000;
+    // x[19] = 0.090560000;
+    // x[20] = 0.027580000;
+    // x[21] = 0.009780000;
+    // x[22] = 0.023600000;
+    // x[23] = 0.001500000;
+    // x[24] = 0.019740000;
+    // x[25] = 0.000740000;
+    // x[26] = 0.000010000;
     return x;
 }
 
@@ -196,7 +198,7 @@ void decode(float encryption, float *x, float upper, float lower) {
 
 char *removeTrail0(float number) {
     char *result = malloc(sizeof(char) * MAX_NUM_DECIMALS);
-    sprintf(result, "%.100g", number);
+    sprintf(result, "%g", number);
 
     char *p = strchr(result, '.'); //locate decimal point
     while(*p != '\0') {
